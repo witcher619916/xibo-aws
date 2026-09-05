@@ -1,6 +1,10 @@
+#provider configuration for AWS
+
 provider "aws" {
   region = "eu-north-1"
 }
+
+#Data block to get the latest Ubuntu 24.04 AMI ID for the EC2 instance
 
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -18,6 +22,8 @@ data "aws_ami" "ubuntu" {
 data "aws_iam_instance_profile" "ECSInstanceProfile" {
   name = "Session_management_role"
 }
+
+#Linux EC2 instance to host the Xibo CMS
 
 resource "aws_instance" "xibo-server" {
   ami           = data.aws_ami.ubuntu.id
@@ -65,6 +71,8 @@ sed -i 's|^CMS_SERVER_NAME=.*|CMS_SERVER_NAME=xibo.salo-ua.com|' config.env
 docker compose up -d
 EOF
 }
+
+#VPC, Subnets, Internet Gateway, Route Table, and Security Groups
 
 resource "aws_vpc" "xibo-vpc" {
   cidr_block = "10.0.0.0/16"
@@ -175,6 +183,8 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_out_alb" {
   ip_protocol       = "-1" # semantically equivalent to all ports
 }
 
+#ALB configuration
+
 resource "aws_lb" "xibo-alb" {
   name               = "xibo-alb"
   internal           = true
@@ -194,7 +204,7 @@ resource "aws_lb_target_group" "xibo-alb-tg" {
   health_check {
     path                = "/"
     protocol            = "HTTP"
-    matcher             = "200-399"
+    matcher             = "200-399" #modified health check matcher to accept Xibo's 302 redirect response
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -208,6 +218,8 @@ resource "aws_lb_target_group_attachment" "xibo-alb-tg-attachment" {
   target_id        = aws_instance.xibo-server.id
   port             = 80
 }
+
+#certificate reference issued manually in AWS ACM for the domain xibo.salo-ua.com
 
 data "aws_acm_certificate" "issued" {
   domain   = "xibo.salo-ua.com"
@@ -227,7 +239,7 @@ resource "aws_lb_listener" "xibo-alb-listener" {
   }
 }
 
-#Windows EC2 instance to host the Player App
+#Windows EC2 instance to host the Player App & test connection to the CMS
 
 data "aws_ami" "windows" {
   most_recent = true
@@ -240,7 +252,7 @@ data "aws_ami" "windows" {
   owners = ["801119661308"] # Windows
 }
 
-#aws key pair for the Windows instance
+#AWS key pair for the Windows instance to allow secure access via AWS Systems Manager Session Manager
 
 resource "aws_key_pair" "windows-key" {
   key_name   = "windows-key"
