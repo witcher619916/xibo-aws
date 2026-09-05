@@ -33,3 +33,15 @@ This started as an investigation into a Power BI integration issue with a commer
 - **AWS**: VPC, EC2, Application Load Balancer, ACM, IAM, Systems Manager
 - **Cloudflare**: DNS (CNAME managed via Terraform, integrated with the ALB's dynamic DNS name)
 - **Xibo CMS**: Dockerized, provisioned via a bootstrapping `user_data` script (Docker install, container config, secrets generation via `openssl`)
+
+---
+
+## A short demo of the admin portal
+
+- **Admin portal** https://github.com/user-attachments/assets/10e1420a-8509-4e44-947a-72b7022f76cf
+
+
+
+
+
+
